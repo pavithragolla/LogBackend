@@ -13,6 +13,7 @@ public interface IUserRepository
     Task<List<User>> GetAllUser();
 
     Task<User> GetUserById(int Id);
+    Task<List<Tag>> GetTagUserById(int Id);
 
     Task<User> GetByEmail(string Email);
 
@@ -36,22 +37,21 @@ public class UserRepository : BaseRepository, IUserRepository
         }
 
     }
-
-    // public async Task<User> GetUserById(int Id)
-    // {
-    //     var query = $@"SELECT * FROM ""{TableNames.user}"" WHERE id = @Id";
-    //     using (var connection = NewConnection)
-    //     {
-    //         var Res = await connection.QuerySingleOrDefaultAsync<User>(query, new { Id });
-    //         return Res;
-    //     }
-    // }
        public async Task<User> GetUserById(int Id)
     {
         var query = $@"SELECT * FROM ""{TableNames.user}"" WHERE id = @Id";
         using (var connection = NewConnection)
         {
             var Res = await connection.QuerySingleOrDefaultAsync<User>(query, new { Id });
+            return Res;
+        }
+    }
+       public async Task<List<Tag>> GetTagUserById(int Id)
+    {
+        var query = $@"SELECT * FROM ""{TableNames.tag}""t LEFT JOIN ""{TableNames.user_tag}"" ut ON ut.tag_id = t.id WHERE ut.user_id = @Id";
+        using (var connection = NewConnection)
+        {
+            var Res = (await connection.QueryAsync<Tag>(query, new { Id = Id })).AsList();
             return Res;
         }
     }
@@ -90,5 +90,6 @@ public class UserRepository : BaseRepository, IUserRepository
 
             return await con.ExecuteAsync(query, Item) > 0;
     }
+
 
 }

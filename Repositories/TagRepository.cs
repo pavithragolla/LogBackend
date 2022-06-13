@@ -1,4 +1,6 @@
 using Dapper;
+using Logbackend.Models;
+using LogBackend.DTOs;
 using LogBackend.Models;
 using LogBackend.Repositories;
 using LogBackend.Utilities;
@@ -9,10 +11,12 @@ namespace LogBackend.Repositories;
 public interface ITagRepository
 {
     Task<Tag> Create(Tag Item);
-    Task<List<Tag>> GetTagsByLogId(long Id);
-    Task<List<Tag>> GetAllTags();
+    Task<List<Log>> GetTagsByLogId(long Id);
+    Task<List<Tag>> GetAllTags(TagFilterDTO tagfilter);
     Task<Tag> GetById(long Id);
     Task<bool> DeleteTag(long Id);
+    // Task<List<Log>> GetTagByLog(long Id);
+     Task<List<TagTypeDTO>> GetTagTypeByLogId(int id);
 
 
 }
@@ -26,33 +30,68 @@ public class TagRepository : BaseRepository, ITagRepository
     public async Task<Tag> Create(Tag Item)
     {
         var query = $@"INSERT INTO {TableNames.tag} (name, type_id) VALUES (@Name, @TypeId) RETURNING *";
-         using (var connection = NewConnection)
+        using (var connection = NewConnection)
         {
             return await connection.QuerySingleOrDefaultAsync<Tag>(query, Item);
 
         }
     }
 
-    public async Task<List<Tag>> GetTagsByLogId(long LogId)
+    public async Task<List<Log>> GetTagsByLogId(long LogId)
     {
-        var query = $@"SELECT * FROM ""{TableNames.log_tag}"" lt LEFT JOIN ""{TableNames.tag}"" t  ON t.id = lt.tag_id  where lt.log_id = @LogId";
-        // var query = $@"select * from ""{TableNames.user_tag}"" ut left join ""{TableNames.tag}"" t on t.id = ut.tag_id where ut.user_id = @Id";
+        // var query = $@"SELECT * FROM ""{TableNames.log_tag}"" lt LEFT JOIN ""{TableNames.tag}"" t  ON t.id = lt.tag_id  where lt.log_id = @LogId";
+        var query = $@"SELECT * FROM""{TableNames.log}"" l
+        Left Join""{TableNames.log_tag}""lt ON lt.log_id = l.id WHERE lt.tag_id = @Id";
+
         // type name left join
         using (var con = NewConnection)
         {
-            return (await con.QueryAsync<Tag>(query, new { LogId })).AsList();
+            return (await con.QueryAsync<Log>(query, new { LogId })).AsList();
         }
     }
-
-
-    public async Task<List<Tag>> GetAllTags()
+    public async Task<List<TagTypeDTO>> GetTagTypeByLogId(int id)
     {
-       var query = $@"SELECT * FROM {TableNames.tag}";
+        // var query = $@"SELECT * FROM ""{TableNames.log_tag}"" lt LEFT JOIN ""{TableNames.tag}"" t  ON t.id = lt.tag_id  where lt.log_id = @LogId";
+        var query = $@"SELECT * FROM""{TableNames.tag_type}"" tt
+        Left Join""{TableNames.tag}""t ON t.type_id = tt.id WHERE t.id = @Id";
+
+        // type name left join
         using (var con = NewConnection)
         {
-            return (await con.QueryAsync<Tag>(query)).AsList();
+            return (await con.QueryAsync<TagTypeDTO>(query, new { Id = id })).AsList();
         }
     }
+
+
+    // public async Task<List<Tag>> GetAllTags()
+    // {
+    //     var query = $@"SELECT * FROM {TableNames.tag}";
+    //     using (var con = NewConnection)
+    //     {
+    //         return (await con.QueryAsync<Tag>(query)).AsList();
+    //     }
+    // }
+
+
+    public async Task<List<Tag>> GetAllTags(TagFilterDTO tagfilter)
+    {
+        List<Tag> res;
+        var query = $@"SELECT * FROM ""{TableNames.tag}"" ";
+        if (tagfilter.Name is not null)
+        {
+            query += " WHERE name = @Name";
+        }
+        var  paramsObj = new
+        {
+            Name = tagfilter?.Name,
+        };
+        using (var con = NewConnection)
+        {
+            res = (await con.QueryAsync<Tag>(query, paramsObj)).AsList();
+        }
+        return res;
+    }
+
 
 
     // public async Task<bool> DeleteTag(long Id)
@@ -63,7 +102,7 @@ public class TagRepository : BaseRepository, ITagRepository
     //         return (await con.ExecuteAsync(query, new { Id }) > 0);
     // }
 
-     public async Task<bool> DeleteTag(long Id)
+    public async Task<bool> DeleteTag(long Id)
     {
         var query = $@"DELETE FROM {TableNames.tag} WHERE id = @Id";
 
@@ -71,7 +110,7 @@ public class TagRepository : BaseRepository, ITagRepository
             return (await con.ExecuteAsync(query, new { Id }) > 0);
     }
 
-      public async Task<Tag> GetById(long Id)
+    public async Task<Tag> GetById(long Id)
     {
         var query = $@"SELECT * FROM {TableNames.tag} WHERE id = @Id";
         using (var connection = NewConnection)

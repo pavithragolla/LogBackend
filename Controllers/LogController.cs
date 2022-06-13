@@ -1,7 +1,9 @@
+using System.Security.Claims;
 using Logbackend.Models;
 using Logbackend.Repositories;
 using LogBackend.DTOs;
 using LogBackend.Repositories;
+using LogBackend.Utilities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LogBackend.Controllers;
@@ -25,6 +27,10 @@ public class LogController : ControllerBase
         _config = config;
         _tag = tag;
     }
+    private int GetuserIdFromClaims(IEnumerable<Claim> claims)
+    {
+        return Convert.ToInt32(claims.Where(x => x.Type == UserConstants.Id).First().Value);
+    }
 
 
     [HttpPost]
@@ -42,56 +48,65 @@ public class LogController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Log>>> GetAllLog([FromQuery] int Limit, int PageNumber)
+    public async Task<ActionResult<List<Log>>> GetAllLog([FromQuery] DateFilterDTO dateFilter = null)
     {
-        var AllLogs = await _log.GetAllLog(Limit, PageNumber);
+        var AllLogs = await _log.GetAllLog(dateFilter);
 
         return Ok(AllLogs);
     }
 
     [HttpGet("{id}")]
-
-    public async Task<ActionResult> GetLogById(int id)
+    public async Task<ActionResult<Log>> GetById([FromRoute] int id)
     {
-        var allLogs = await _log.GetById(id);
-        if (allLogs is null)
-        {
-            return NotFound("No logs found with given id");
-        }
-        var dto = allLogs.asDto;
-        dto.Tags = await _tag.GetTagsByLogId(id);
+        var userId = User.Claims.FirstOrDefault(c => c.Type == UserConstants.Id)?.Value;
+        var Id = int.Parse(userId);
 
+        var res = await _log.GetById(id);
+        await _log.seenId(Id, res.Id);
+
+        if (res is null)
+            return NotFound("No Log Found with given id");
+        //  await _log.seenId(Id, res.Id);
+        var dto = res.asDto;
+        dto.Tags = (await _log.GetTags(id)).Select(x => x.asDto).ToList();
         return Ok(dto);
     }
 
-    // [HttpPut("{id}")]
+    // [HttpGet("{id}")]
+    // public async Task<ActionResult> GetLogById(int id)
+    // {
+    //     var allLogs = await _log.GetById(id);
+    //     if (allLogs is null)
+    //     {
+    //         return NotFound("No logs found with given id");
+    //     }
+    //     var dto = allLogs.asDto;
+    //     dto.Tags = await _tag.GetTagsByLogId(id);
 
-    //   public async Task<ActionResult> Update([FromBody] LogUpdateDTO Data, int id)
-    //   {
-    //         var user = new Log
-    //         {
-    //             Id = id,
-    //             Description = Data.Description
-    //         };
-    //         var AllUsers = await _log.Update(user);
-    //         return Ok(AllUsers);
-    //   }
-      [HttpPut("{id}")]
+    //     return Ok(dto);
+    // }
 
-    public async Task<ActionResult> Update([FromBody] LogUpdateDTO Data, int id)
+    [HttpPut("{id}")]
+
+    public async Task<ActionResult> Update([FromBody] LogUpdateDTO Data, [FromRoute] int id)
     {
-
-        var toUpdateLog = new Log
+        var Id = GetuserIdFromClaims(User.Claims);
+        var res = await _log.GetById(id);
+        if (res is null)
+        {
+            return NotFound("No logs found with given id");
+        }
+        var toUpdateLog = res with
         {
             Description = Data.Description.Trim(),
-            Id = id
+            UpdatedByUserId = Id
         };
 
         var didUpdate = await _log.Update(toUpdateLog);
         return Ok(didUpdate);
     }
 
-     [HttpDelete("{id}")]
+    [HttpDelete("{id}")]
     public async Task<ActionResult> Delete([FromRoute] long id)
     {
 

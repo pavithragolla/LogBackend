@@ -19,11 +19,14 @@ public record TagDTO
     [JsonPropertyName("type_id")]
 
     public int TypeId { get; set; }
+    // [JsonPropertyName("type_name")]
 
+    // public string TypeName { get; set; }
+    [JsonPropertyName("logs")]
     public List<LogDTO> Logs { get; set; }
+    // [JsonPropertyName("tagtypes")]
 
-    [JsonPropertyName("type_name")]
-    public string TypeName { get; set; }
+    // public List<TagTypeDTO> TagTypes { get; set; }
 }
 
 

@@ -60,12 +60,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseCors(x =>
-{
-    x.AllowAnyHeader();
-    x.AllowAnyMethod();
-    x.AllowAnyOrigin();
-});
+// app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+app.UseCors(c => c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+
+
 app.UseAuthentication();
 
 app.UseAuthorization();

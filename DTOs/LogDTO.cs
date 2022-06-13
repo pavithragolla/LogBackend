@@ -19,15 +19,15 @@ public record LogDTO
 
     public string StackTrace { get; set; }
     [JsonPropertyName("created_at")]
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     [JsonPropertyName("updated_at")]
-    public DateTimeOffset UpdatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     [JsonPropertyName("updated_by_user_id")]
     public int UpdatedByUserId { get; set; }
     [JsonPropertyName("partially_deleted")]
     public bool PartiallyDeleted { get; set; }
     [JsonPropertyName("tags")]
-    public List<Tag> Tags { get; set; }
+    public List<TagDTO> Tags { get; set; }
     // public List<TagTy> Tags { get; set; }
 }
 

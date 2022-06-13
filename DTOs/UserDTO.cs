@@ -27,9 +27,9 @@ public record UserDTO
 
     [JsonPropertyName("is_superuser")]
     public bool IsSuperuser { get; set; }
-    // [JsonPropertyName("tags")]
+    [JsonPropertyName("tags")]
 
-    // public List<Tag> Tags { get; set; }
+    public List<TagDTO> Tags { get; set; }
 
 }
 

@@ -22,14 +22,16 @@ public class UserController : ControllerBase
     private readonly ILogger<UserController> _logger;
 
     private readonly IUserRepository _user;
+    private readonly ITagRepository _tag;
 
     private IConfiguration _config;
 
-    public UserController(ILogger<UserController> logger, IUserRepository user, IConfiguration config)
+    public UserController(ILogger<UserController> logger, IUserRepository user, IConfiguration config, ITagRepository tag)
     {
         _logger = logger;
         _user = user;
         _config = config;
+        _tag = tag;
     }
     private bool IsValidEmailAddress(string email)
     {
@@ -103,12 +105,31 @@ public class UserController : ControllerBase
       [HttpGet("{id}")]
     public async Task<ActionResult<UserDTO>> GetUserById(int id)
     {
+        // var IsSuperuser = User.Claims.FirstOrDefault(c => c.Type == UserConstants.IsSuperuser)?.Value;
+        // var userId = User.Claims.FirstOrDefault(c => c.Type == UserConstants.Id)?.Value;
+        // if (IsSuperuser.Trim().ToLower() == "true" || userId == id.ToString())
+        //     return (await _user.GetUserById(id)).asDto;
+        // else
+        //     return BadRequest("You are not authorized to access this resource");
+
         var IsSuperuser = User.Claims.FirstOrDefault(c => c.Type == UserConstants.IsSuperuser)?.Value;
-        var userId = User.Claims.FirstOrDefault(c => c.Type == UserConstants.Id)?.Value;
-        if (IsSuperuser.Trim().ToLower() == "true" || userId == id.ToString())
-            return (await _user.GetUserById(id)).asDto;
-        else
-            return BadRequest("You are not authorized to access this resource");
+
+        if (bool.Parse(IsSuperuser))
+        {
+            var res = await _user.GetUserById(id);
+
+             if (res is null)
+              return NotFound("No user found by id");
+
+              var dto = res.asDto;
+              dto.Tags = (await _user.GetTagUserById(id)).Select(x => x.asDto).ToList();
+              return Ok(dto);
+        }
+            else
+            {
+                return BadRequest("You are not authorized to access this resource");
+            }
+
     }
 
     [HttpPost("login")]

@@ -9,7 +9,7 @@ public record Tag
     public string Name { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public int TypeId { get; set; }
-    public string TypeName { get; set; }
+    // public string TypeName { get; set; }
     // typename
 
 
@@ -19,7 +19,7 @@ public record Tag
         Name = Name,
         CreatedAt = CreatedAt,
         TypeId = TypeId,
-        TypeName = TypeName,
+        // TypeName = TypeName,
         // typename
     };
 }

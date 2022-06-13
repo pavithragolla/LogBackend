@@ -42,11 +42,12 @@ public class TagController : ControllerBase
         return Ok(createdItem);
     }
     [HttpGet("{id}")]
-    public async Task<ActionResult<Tag>> GetById(long id)
+    public async Task<ActionResult<Tag>> GetById([FromRoute] int id)
     {
         var tag = await _tag.GetById(id);
         var dto = tag.asDto;
-        dto.Logs = (await _log.GetTags(id)).Select(x => x.asDto).ToList();
+        dto.Logs = (await _tag.GetTagsByLogId(id)).Select(x => x.asDto).ToList();
+        // dto.TagTypes = (await _tag.GetTagTypeByLogId(id)).ToList();
         return Ok(dto);
         // var dto = allTags;
         // dto.Log = await _log.GetById(Id);
@@ -54,10 +55,11 @@ public class TagController : ControllerBase
 
 
     [HttpGet]
-    public async Task<ActionResult<List<Tag>>> GetAllTag()
+    public async Task<ActionResult<List<Tag>>> GetAllTag([FromQuery] TagFilterDTO tagfilter = null)
     {
-        var AllTags = await _tag.GetAllTags();
-        return Ok(AllTags);
+        var AllTags = await _tag.GetAllTags(tagfilter);
+        var dto = AllTags.Select(x => x.asDto);
+        return Ok(dto);
     }
 
     // [HttpDelete("{id}")]
