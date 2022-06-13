@@ -47,7 +47,7 @@ public class TagController : ControllerBase
         var tag = await _tag.GetById(id);
         var dto = tag.asDto;
         dto.Logs = (await _tag.GetTagsByLogId(id)).Select(x => x.asDto).ToList();
-        // dto.TagTypes = (await _tag.GetTagTypeByLogId(id)).ToList();
+        dto.TagTypes = (await _tag.GetTagTypeByLogId(id)).ToList();
         return Ok(dto);
         // var dto = allTags;
         // dto.Log = await _log.GetById(Id);

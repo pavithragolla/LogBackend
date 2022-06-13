@@ -16,7 +16,7 @@ public interface ITagRepository
     Task<Tag> GetById(long Id);
     Task<bool> DeleteTag(long Id);
     // Task<List<Log>> GetTagByLog(long Id);
-     Task<List<TagTypeDTO>> GetTagTypeByLogId(int id);
+    Task<List<TagTypeDTO>> GetTagTypeByLogId(int id);
 
 
 }
@@ -39,9 +39,16 @@ public class TagRepository : BaseRepository, ITagRepository
 
     public async Task<List<Log>> GetTagsByLogId(long LogId)
     {
-        // var query = $@"SELECT * FROM ""{TableNames.log_tag}"" lt LEFT JOIN ""{TableNames.tag}"" t  ON t.id = lt.tag_id  where lt.log_id = @LogId";
+
         var query = $@"SELECT * FROM""{TableNames.log}"" l
         Left Join""{TableNames.log_tag}""lt ON lt.log_id = l.id WHERE lt.tag_id = @Id";
+
+
+
+
+    //     var query = $@"SELECT * FROM ""{TableNames.tag}"" t
+	//    left Join ""{TableNames.log_tag}"" lt ON lt.tag_id = t.id left join ""{TableNames.log}"" l ON l.id = lt.log_id
+    //      Left Join ""{TableNames.tag_type}"" tt ON tt.id = t.type_id WHERE t.id = @Id";
 
         // type name left join
         using (var con = NewConnection)
@@ -51,11 +58,14 @@ public class TagRepository : BaseRepository, ITagRepository
     }
     public async Task<List<TagTypeDTO>> GetTagTypeByLogId(int id)
     {
-        // var query = $@"SELECT * FROM ""{TableNames.log_tag}"" lt LEFT JOIN ""{TableNames.tag}"" t  ON t.id = lt.tag_id  where lt.log_id = @LogId";
-        var query = $@"SELECT * FROM""{TableNames.tag_type}"" tt
-        Left Join""{TableNames.tag}""t ON t.type_id = tt.id WHERE t.id = @Id";
 
-        // type name left join
+        // var query = $@"SELECT * FROM""{TableNames.tag_type}"" tt
+        // Left Join""{TableNames.tag}""t ON t.type_id = tt.id WHERE t.id = @Id";
+
+     var query = $@"SELECT * FROM ""{TableNames.tag}"" t
+	   left Join ""{TableNames.log_tag}"" lt ON lt.tag_id = t.id left join ""{TableNames.log}"" l ON l.id = lt.log_id
+         Left Join ""{TableNames.tag_type}"" tt ON tt.id = t.type_id WHERE t.id = @Id";
+
         using (var con = NewConnection)
         {
             return (await con.QueryAsync<TagTypeDTO>(query, new { Id = id })).AsList();
@@ -81,7 +91,7 @@ public class TagRepository : BaseRepository, ITagRepository
         {
             query += " WHERE name = @Name";
         }
-        var  paramsObj = new
+        var paramsObj = new
         {
             Name = tagfilter?.Name,
         };

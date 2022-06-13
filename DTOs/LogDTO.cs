@@ -26,9 +26,16 @@ public record LogDTO
     public int UpdatedByUserId { get; set; }
     [JsonPropertyName("partially_deleted")]
     public bool PartiallyDeleted { get; set; }
+
+    [JsonPropertyName("type_name")]
+    public string TypeName { get; set; }
+
     [JsonPropertyName("tags")]
     public List<TagDTO> Tags { get; set; }
-    // public List<TagTy> Tags { get; set; }
+    [JsonPropertyName("tagtypes")]
+
+    public List<TagTypeDTO> TagTypes { get; set; }
+
 }
 
 

@@ -69,6 +69,9 @@ public class LogController : ControllerBase
         //  await _log.seenId(Id, res.Id);
         var dto = res.asDto;
         dto.Tags = (await _log.GetTags(id)).Select(x => x.asDto).ToList();
+        // dto.TagTypes = (await _log.GetLogTagTypesById(id)).Select(x => x.asDto).ToList();  // error at asDto
+        dto.TagTypes = (await _log.GetLogTagTypesById(id)).ToList();
+
         return Ok(dto);
     }
 

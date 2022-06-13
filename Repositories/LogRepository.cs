@@ -18,7 +18,7 @@ public interface ILogRepository
     Task<Log> GetById(long id);
     Task<List<Tag>> GetTags(long id);
     Task seenId(int Id, long id);
-    // Task<Log> GetLogTagsById(long id);
+    Task<List<TagTypeDTO>> GetLogTagTypesById(long id);
 
 }
 
@@ -122,13 +122,13 @@ public class LogRepository : BaseRepository, ILogRepository
 
     public async Task<List<Tag>> GetTags(long Id)
     {
-        // var query = $@"SELECT * FROM ""{TableNames.tag}"" t
-        // Left Join ""{TableNames.log_tag}"" lt ON lt.tag_id = t.id WHERE lt.log_id = @Id";
+        var query = $@"SELECT * FROM ""{TableNames.tag}"" t
+        Left Join ""{TableNames.log_tag}"" lt ON lt.tag_id = t.id WHERE lt.log_id = @Id";
 
 
-	  var query =$@"SELECT * FROM ""{TableNames.tag}"" t
-	  left Join ""{TableNames.log_tag}"" lt ON lt.tag_id = t.id left join ""{TableNames.log}"" l ON l.id = lt.log_id
-        Left Join ""{TableNames.tag_type}"" tt ON tt.id = t.type_id WHERE t.id = @Id";
+	//   var query =$@"SELECT * FROM ""{TableNames.tag}"" t
+	//   left Join ""{TableNames.log_tag}"" lt ON lt.tag_id = t.id left join ""{TableNames.log}"" l ON l.id = lt.log_id
+    //     Left Join ""{TableNames.tag_type}"" tt ON tt.id = t.type_id WHERE t.id = @Id";
         using (var con = NewConnection)
         {
             return (await con.QueryAsync<Tag>(query, new { Id })).AsList();
@@ -148,13 +148,16 @@ public class LogRepository : BaseRepository, ILogRepository
         // return res;
     }
 
-    // public async Task<Log> GetLogTagsById(long id)
-    // {
-    //     var query = $@"SELECT * FROM ""{TableNames.log_tag}"" lt LEFT JOIN ""{TableNames.tag}"" t  ON t.id = lt.tag_id  where lt.log_id = @LogId";
-    //      using (var con = NewConnection)
-    //     {
-    //         return (await con.QueryAsync<Tag>(query, new { Id })).AsList();
-    //     }
-    // }
+    public async Task<List<TagTypeDTO>> GetLogTagTypesById(long id)
+    {
+       var query = $@"  SELECT * FROM ""{TableNames.log}"" l
+	  left Join ""{TableNames.log_tag}"" lt ON lt.tag_id = l.id left join ""{TableNames.tag}"" t ON t.id = lt.tag_id
+        Left Join ""{TableNames.tag_type}"" tt ON tt.id = t.type_id WHERE t.id = @Id";
+        using (var con = NewConnection)
+        {
+           return (await con.QueryAsync<TagTypeDTO>(query, new { Id = id })).AsList();
+
+        }
+    }
 
 }

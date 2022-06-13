@@ -14,6 +14,8 @@ public record Log
     public DateTimeOffset UpdatedAt { get; set; }
     public int UpdatedByUserId { get; set; }
     public bool PartiallyDeleted { get; set; }
+    public string TypeName { get; set; }
+
 
 
 
@@ -24,6 +26,8 @@ public record Log
         Title = Title,
         Description = Description,
         StackTrace = StackTrace,
-        UpdatedByUserId = UpdatedByUserId
+        UpdatedByUserId = UpdatedByUserId,
+        TypeName = TypeName,
+
     };
 }
