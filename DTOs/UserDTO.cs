@@ -58,6 +58,9 @@ public record UserLoginDTO
     [JsonPropertyName("password")]
     public string Password { get; set; }
 
+    [JsonPropertyName("device_id")]
+    public string DeviceId { get; set; }
+
 }
 
 public record UserLoginResDTO
@@ -76,6 +79,8 @@ public record UserLoginResDTO
     public string Token { get; set; }
       [JsonPropertyName("is_superuser")]
     public bool IsSuperuser { get; set; }
+    [JsonPropertyName("device_id")]
+    public string DeviceId { get; set; }
 }
 
 public record UserUpdateDTO

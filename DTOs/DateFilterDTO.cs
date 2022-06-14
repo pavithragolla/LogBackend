@@ -4,17 +4,17 @@ namespace LogBackend.DTOs;
 
 public record DateFilterDTO
 {
-    private DateTimeOffset? _fromDate = null;
-    private DateTimeOffset? _toDate = null;
+    private DateTime? _fromDate = null;
+    private DateTime? _toDate = null;
 
     [FromQuery(Name = "from_date")]
-    public DateTimeOffset? FromDate
+    public DateTime? FromDate
     {
         get => _fromDate;
         set => _fromDate = value;
     }
     [FromQuery(Name = "to_date")]
-    public DateTimeOffset? ToDate
+    public DateTime? ToDate
     {
         get => this._toDate?.AddDays(1).Subtract(new TimeSpan(0, 0, 0, 0, 1));
         set => _toDate = value;

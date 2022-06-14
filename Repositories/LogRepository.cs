@@ -72,8 +72,8 @@ public class LogRepository : BaseRepository, ILogRepository
 
         if (dateFilter is not null && (dateFilter.FromDate.HasValue || dateFilter.ToDate.HasValue))
         {
-            if (dateFilter.FromDate is null) dateFilter.FromDate = DateTimeOffset.MinValue;
-            if (dateFilter.ToDate is null) dateFilter.ToDate = DateTimeOffset.Now;
+            if (dateFilter.FromDate is null) dateFilter.FromDate = DateTime.MinValue;
+            if (dateFilter.ToDate is null) dateFilter.ToDate = DateTime.Now;
             query += "WHERE created_at BETWEEN  @FromDate AND  @ToDate";
         }
 

@@ -102,7 +102,7 @@ public class UserController : ControllerBase
     //         return BadRequest("You are not authorized to access this resource");
     // }
 
-      [HttpGet("{id}")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<UserDTO>> GetUserById(int id)
     {
         // var IsSuperuser = User.Claims.FirstOrDefault(c => c.Type == UserConstants.IsSuperuser)?.Value;
@@ -118,17 +118,17 @@ public class UserController : ControllerBase
         {
             var res = await _user.GetUserById(id);
 
-             if (res is null)
-              return NotFound("No user found by id");
+            if (res is null)
+                return NotFound("No user found by id");
 
-              var dto = res.asDto;
-              dto.Tags = (await _user.GetTagUserById(id)).Select(x => x.asDto).ToList();
-              return Ok(dto);
+            var dto = res.asDto;
+            dto.Tags = (await _user.GetTagUserById(id)).Select(x => x.asDto).ToList();
+            return Ok(dto);
         }
-            else
-            {
-                return BadRequest("You are not authorized to access this resource");
-            }
+        else
+        {
+            return BadRequest("You are not authorized to access this resource");
+        }
 
     }
 
@@ -161,7 +161,8 @@ public class UserController : ControllerBase
             // Name = existingUser.Name,
             Email = existingUser.Email,
             Token = token,
-            IsSuperuser = existingUser.IsSuperuser
+            IsSuperuser = existingUser.IsSuperuser,
+            DeviceId = Data.DeviceId
         };
 
         return Ok(res);
