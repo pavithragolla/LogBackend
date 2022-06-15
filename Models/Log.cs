@@ -17,6 +17,9 @@ public record Log
     public string TypeName { get; set; }
     // public string Name { get; set; }
 
+    ////
+    public bool ReadStatus { get; set; }
+
 
 
 
@@ -30,6 +33,8 @@ public record Log
         UpdatedByUserId = UpdatedByUserId,
         TypeName = TypeName,
         // Name  = Name
+        ////
+        ReadStatus = ReadStatus
 
     };
 }

@@ -103,7 +103,30 @@ public class LogController : ControllerBase
         var toUpdateLog = res with
         {
             Description = Data.Description.Trim(),
+            // ReadStatus = Data.ReadStatus,
             UpdatedByUserId = Id,
+
+        };
+
+        var didUpdate = await _log.Update(toUpdateLog);
+        return Ok(didUpdate);
+    }
+
+    [HttpPut("{id}/status")]
+
+    public async Task<ActionResult> UpdateSatus([FromBody] LogStatusUpdateDTO Data, [FromRoute] int id)
+    {
+        var Id = GetuserIdFromClaims(User.Claims);
+        var res = await _log.GetById(id);
+        if (res is null)
+        {
+            return NotFound("No logs found with given id");
+        }
+        var toUpdateLog = res with
+        {
+            // Description = Data.Description.Trim(),
+            ReadStatus = Data.ReadStatus,
+            // UpdatedByUserId = Id,
 
         };
 

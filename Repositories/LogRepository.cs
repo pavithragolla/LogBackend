@@ -107,7 +107,7 @@ public class LogRepository : BaseRepository, ILogRepository
 
     public async Task<bool> Update(Log Item)
     {
-        var query = $@"UPDATE ""{TableNames.log}"" SET description = @Description, updated_by_user_id = @UpdatedByUserId, updated_at = now() WHERE id = @Id";
+        var query = $@"UPDATE ""{TableNames.log}"" SET  description = @Description, read_status = @ReadStatus, updated_by_user_id = @UpdatedByUserId, updated_at = now() WHERE id = @Id";
         using (var connection = NewConnection)
         {
             return (await connection.ExecuteAsync(query, Item)) > 0;

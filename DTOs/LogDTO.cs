@@ -38,6 +38,10 @@ public record LogDTO
 
     public List<TagTypeDTO> TagTypes { get; set; }
 
+    /////
+    [JsonPropertyName("read_status")]
+    public bool ReadStatus { get; set; }
+
 }
 
 
@@ -56,6 +60,14 @@ public record LogUpdateDTO
     public string Description { get; set; }
 
 
+
     // [JsonPropertyName("name")]
     // public string Name { get; set; }
+}
+public record LogStatusUpdateDTO
+{
+
+    [JsonPropertyName("read_status")]
+    public bool ReadStatus { get; set; }
+
 }
