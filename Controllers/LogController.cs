@@ -50,7 +50,7 @@ public class LogController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<Log>>> GetAllLog([FromQuery] DateFilterDTO dateFilter = null)
     {
-        var AllLogs = await _log.GetAllLog(dateFilter);
+        var AllLogs = (await _log.GetAllLog(dateFilter)).Select(x => x.asDto).ToList();
 
         return Ok(AllLogs);
     }
@@ -65,6 +65,7 @@ public class LogController : ControllerBase
         await _log.seenId(Id, res.Id);
 
         if (res is null)
+
             return NotFound("No Log Found with given id");
         //  await _log.seenId(Id, res.Id);
         var dto = res.asDto;
@@ -102,7 +103,8 @@ public class LogController : ControllerBase
         var toUpdateLog = res with
         {
             Description = Data.Description.Trim(),
-            UpdatedByUserId = Id
+            UpdatedByUserId = Id,
+
         };
 
         var didUpdate = await _log.Update(toUpdateLog);

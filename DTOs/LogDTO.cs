@@ -29,6 +29,8 @@ public record LogDTO
 
     [JsonPropertyName("type_name")]
     public string TypeName { get; set; }
+    // [JsonPropertyName("name")]
+    // public string Name { get; set; }
 
     [JsonPropertyName("tags")]
     public List<TagDTO> Tags { get; set; }
@@ -52,4 +54,8 @@ public record LogUpdateDTO
 {
     [JsonPropertyName("description")]
     public string Description { get; set; }
+
+
+    // [JsonPropertyName("name")]
+    // public string Name { get; set; }
 }

@@ -15,6 +15,7 @@ public record Log
     public int UpdatedByUserId { get; set; }
     public bool PartiallyDeleted { get; set; }
     public string TypeName { get; set; }
+    // public string Name { get; set; }
 
 
 
@@ -28,6 +29,7 @@ public record Log
         StackTrace = StackTrace,
         UpdatedByUserId = UpdatedByUserId,
         TypeName = TypeName,
+        // Name  = Name
 
     };
 }
