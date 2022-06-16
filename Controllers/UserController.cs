@@ -22,16 +22,18 @@ public class UserController : ControllerBase
     private readonly ILogger<UserController> _logger;
 
     private readonly IUserRepository _user;
+    private readonly IUserLoginRepository _userLogin;
     private readonly ITagRepository _tag;
 
     private IConfiguration _config;
 
-    public UserController(ILogger<UserController> logger, IUserRepository user, IConfiguration config, ITagRepository tag)
+    public UserController(ILogger<UserController> logger, IUserRepository user, IConfiguration config, ITagRepository tag, IUserLoginRepository userLogin)
     {
         _logger = logger;
         _user = user;
         _config = config;
         _tag = tag;
+        _userLogin = userLogin;
     }
     private bool IsValidEmailAddress(string email)
     {
@@ -145,24 +147,21 @@ public class UserController : ControllerBase
 
         if (existingUser is null)
             return NotFound("User Not Found With Current Email Address");
-        // if (existingUser.Password is null)
-        // {
-        //     return BadRequest(" Password is Null ");
-        // }
-
 
         if (!BCrypt.Net.BCrypt.Verify(Data.Password, existingUser.Password))
             return BadRequest("Incorrect password");
         var token = Generate(existingUser);
+        if (token is not null)
+            await _userLogin.SetUserLogin(existingUser.Id, Data.DeviceId, Data.NotificationToken, Request.Headers["User-Agent"]);
 
         var res = new UserLoginResDTO
         {
             UserId = existingUser.Id,
-            // Name = existingUser.Name,
             Email = existingUser.Email,
             Token = token,
             IsSuperuser = existingUser.IsSuperuser,
-            DeviceId = Data.DeviceId
+            DeviceId = Data.DeviceId,
+            NotificationToken = Data.NotificationToken
         };
 
         return Ok(res);

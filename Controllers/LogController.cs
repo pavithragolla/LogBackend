@@ -43,7 +43,7 @@ public class LogController : ControllerBase
             Description = Data.Description,
             StackTrace = Data.StackTrace,
         };
-        var createdItem = await _log.Create(CreateLog);
+        var createdItem = (await _log.Create(CreateLog)).asDto;
         return Ok(createdItem);
     }
 
@@ -62,7 +62,7 @@ public class LogController : ControllerBase
         var Id = int.Parse(userId);
 
         var res = await _log.GetById(id);
-        await _log.seenId(Id, res.Id);
+        // await _log.seenId(Id, res.Id);
 
         if (res is null)
 
@@ -108,31 +108,33 @@ public class LogController : ControllerBase
 
         };
 
-        var didUpdate = await _log.Update(toUpdateLog);
+        var didUpdate = await _log.Update(toUpdateLog, Data.Tags);
+        if (!didUpdate)
+            return Ok("Log Updated");
         return Ok(didUpdate);
     }
 
-    [HttpPut("{id}/status")]
+    // [HttpPut("{id}/status")]
 
-    public async Task<ActionResult> UpdateSatus([FromBody] LogStatusUpdateDTO Data, [FromRoute] int id)
-    {
-        var Id = GetuserIdFromClaims(User.Claims);
-        var res = await _log.GetById(id);
-        if (res is null)
-        {
-            return NotFound("No logs found with given id");
-        }
-        var toUpdateLog = res with
-        {
-            // Description = Data.Description.Trim(),
-            ReadStatus = Data.ReadStatus,
-            // UpdatedByUserId = Id,
+    // public async Task<ActionResult> UpdateSatus([FromBody] LogStatusUpdateDTO Data, [FromRoute] int id)
+    // {
+    //     var Id = GetuserIdFromClaims(User.Claims);
+    //     var res = await _log.GetById(id);
+    //     if (res is null)
+    //     {
+    //         return NotFound("No logs found with given id");
+    //     }
+    //     var toUpdateLog = res with
+    //     {
+    //         // Description = Data.Description.Trim(),
+    //         ReadStatus = Data.ReadStatus,
+    //         // UpdatedByUserId = Id,
 
-        };
+    //     };
 
-        var didUpdate = await _log.Update(toUpdateLog);
-        return Ok(didUpdate);
-    }
+    //     var didUpdate = await _log.Update(toUpdateLog);
+    //     return Ok(didUpdate);
+    // }
 
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete([FromRoute] long id)

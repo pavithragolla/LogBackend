@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddTransient<IUserRepository, UserRepository>();
+builder.Services.AddTransient<IUserLoginRepository, UserLoginRepository>();
 builder.Services.AddTransient<ILogRepository, LogRepository>();
 builder.Services.AddTransient<ITagRepository, TagRepository>();
 

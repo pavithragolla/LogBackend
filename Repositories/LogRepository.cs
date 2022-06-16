@@ -11,26 +11,26 @@ namespace Logbackend.Repositories;
 public interface ILogRepository
 {
     Task<Log> Create(Log Item);
-    Task<bool> Update(Log Item);
+    Task<bool> Update(Log Item, List<int> tags);
     Task<bool> DeleteLog(long Id);
     // Task<List<Log>> GetAllLog(int Limit, int PageNumber);
     Task<List<Log>> GetAllLog(DateFilterDTO dateFilter);
     Task<Log> GetById(long id);
     Task<List<Tag>> GetTags(long id);
-    Task seenId(int Id, long id);
+    // Task seenId(int Id, long id);
     Task<List<TagTypeDTO>> GetLogTagTypesById(long id);
+    // Task<bool> SoftDelete(long Id);
+
+    Task<bool> SetReadStatus(long Id, int UserId, int LogId);
 
 }
 
 
 public class LogRepository : BaseRepository, ILogRepository
 {
-    // private readonly IMemoryCache _memoryCache;
 
     public LogRepository(IConfiguration configuration) : base(configuration)
     {
-        // _memoryCache = memoryCache;
-
     }
 
     public async Task<Log> Create(Log Item)
@@ -53,10 +53,6 @@ public class LogRepository : BaseRepository, ILogRepository
     //     using (var con = NewConnection)
 
     //         return (await con.QueryAsync<Log>(query, new { @PageNumber = (PageNumber - 1) * Limit, Limit })).AsList();
-
-
-
-
 
     // }
 
@@ -105,35 +101,42 @@ public class LogRepository : BaseRepository, ILogRepository
 
 
 
-    public async Task<bool> Update(Log Item)
+    public async Task<bool> Update(Log Item, List<int> tags)
     {
-        var query = $@"UPDATE ""{TableNames.log}"" SET  description = @Description, read_status = @ReadStatus, updated_by_user_id = @UpdatedByUserId, updated_at = now() WHERE id = @Id";
-        using (var connection = NewConnection)
-        {
-            return (await connection.ExecuteAsync(query, Item)) > 0;
-        }
-        // var TagDelete = $@"DELETE FROM ""{TableNames.log_tag}"" WHERE log_id = @Id";
-        //   var TagInsert = $@"INSERT INTO ""{TableNames.log_tag}"" (log_id, tag_id) VALUES (@LogId, @TagId)";
-        // // var query = $@"UPDATE""{TableNames.log_tag}"" SET name = @name";
+        var query = $@"UPDATE ""{TableNames.log}"" SET  description = @Description, updated_by_user_id = @UpdatedByUserId, updated_at = now() WHERE id = @Id";
+        // using (var connection = NewConnection)
+        // {
+        //     return (await connection.ExecuteAsync(query, Item)) > 0;
+        // }
+        var TagDelete = $@"DELETE FROM ""{TableNames.log_tag}"" WHERE log_id = @Id";
+        var TagInsert = $@"INSERT INTO ""{TableNames.log_tag}"" (log_id, tag_id) VALUES (@LogId, @TagId)";
+        // var query = $@"UPDATE""{TableNames.log_tag}"" SET name = @name";
 
-        // using (var con = NewConnection)
-        //    if( (await con.ExecuteAsync(query, Item)) > 0)
-        //     {
-        //         await con.ExecuteAsync(TagDelete, new { Id = Item.Id });
-        //         foreach (var tag in Item.tag)
-        //         {
-        //             await con.ExecuteAsync(TagInsert, new { LogId = Item.Id, TagId = tag.Id });
-        //         }
-        //     }
-        //     return true;
+        using (var con = NewConnection)
+            if ((await con.ExecuteAsync(query, Item)) > 0)
+            {
+                await con.ExecuteAsync(TagDelete, new { Id = Item.Id });
+                foreach (var tagId in tags)
+                    await con.QuerySingleOrDefaultAsync(TagInsert, new { LogId = Item.Id, TagId = tagId });
+                return true;
+            }
+            else
+                return false;
     }
     public async Task<bool> DeleteLog(long Id)
     {
-        var query = $@"DELETE FROM {TableNames.log} WHERE id = @Id";
+        var query = $@"DELETE FROM ""{TableNames.log}"" WHERE id = @Id";
 
         using (var con = NewConnection)
             return (await con.ExecuteAsync(query, new { Id }) > 0);
     }
+    // public async Task<bool> SoftDelete(long Id)
+    // {
+    //     var query = $@"DELETE FROM ""{TableNames.log}"" created_at (now() - 90 Days) WHERE id = @Id";
+
+    //     using (var con = NewConnection)
+    //         return (await con.ExecuteAsync(query, new { Id }) > 0);
+    // }
 
     public async Task<List<Tag>> GetTags(long Id)
     {
@@ -151,17 +154,17 @@ public class LogRepository : BaseRepository, ILogRepository
     }
 
 
-    public async Task seenId(int Id, long id)
-    {
-        var query = $@"INSERT INTO ""{TableNames.log_seen}"" ( user_id, log_id) VALUES (@UserId, @Logid) RETURNING *";
+    // public async Task seenId(int Id, long id)
+    // {
+    //     var query = $@"INSERT INTO ""{TableNames.log_seen}"" ( user_id, log_id) VALUES (@UserId, @Logid) RETURNING *";
 
-        using (var con = NewConnection)
-        {
-            var res = await con.QuerySingleOrDefaultAsync(query, new { UserId = Id, LogId = id });
+    //     using (var con = NewConnection)
+    //     {
+    //         var res = await con.QuerySingleOrDefaultAsync(query, new { UserId = Id, LogId = id });
 
-        }
-        // return res;
-    }
+    //     }
+    //     // return res;
+    // }
 
     public async Task<List<TagTypeDTO>> GetLogTagTypesById(long id)
     {
@@ -175,4 +178,14 @@ public class LogRepository : BaseRepository, ILogRepository
         }
     }
 
+    public async Task<bool> SetReadStatus(long Id, int UserId, int LogId)
+    {
+        var query = $@"INSERT INTO ""{TableNames.log_seen}"" ( user_id, log_id) VALUES (@UserId, @Logid) RETURNING *";
+
+        using (var con = NewConnection)
+        {
+            return await con.QuerySingleOrDefaultAsync(query, new { UserId = UserId, LogId = Id });
+
+        }
+    }
 }

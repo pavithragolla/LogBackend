@@ -14,7 +14,7 @@ public interface ITagRepository
     Task<List<Log>> GetTagsByLogId(long Id);
     Task<List<Tag>> GetAllTags(TagFilterDTO tagfilter);
     Task<Tag> GetById(long Id);
-    Task<bool> DeleteTag(long Id);
+    // Task<bool> DeleteTag(long Id);
     // Task<List<Log>> GetTagByLog(long Id);
     Task<List<TagTypeDTO>> GetTagTypeByLogId(int id);
 
@@ -46,9 +46,9 @@ public class TagRepository : BaseRepository, ITagRepository
 
 
 
-    //     var query = $@"SELECT * FROM ""{TableNames.tag}"" t
-	//    left Join ""{TableNames.log_tag}"" lt ON lt.tag_id = t.id left join ""{TableNames.log}"" l ON l.id = lt.log_id
-    //      Left Join ""{TableNames.tag_type}"" tt ON tt.id = t.type_id WHERE t.id = @Id";
+        //     var query = $@"SELECT * FROM ""{TableNames.tag}"" t
+        //    left Join ""{TableNames.log_tag}"" lt ON lt.tag_id = t.id left join ""{TableNames.log}"" l ON l.id = lt.log_id
+        //      Left Join ""{TableNames.tag_type}"" tt ON tt.id = t.type_id WHERE t.id = @Id";
 
         // type name left join
         using (var con = NewConnection)
@@ -62,7 +62,7 @@ public class TagRepository : BaseRepository, ITagRepository
         // var query = $@"SELECT * FROM""{TableNames.tag_type}"" tt
         // Left Join""{TableNames.tag}""t ON t.type_id = tt.id WHERE t.id = @Id";
 
-     var query = $@"SELECT * FROM ""{TableNames.tag}"" t
+        var query = $@"SELECT * FROM ""{TableNames.tag}"" t
 	   left Join ""{TableNames.log_tag}"" lt ON lt.tag_id = t.id left join ""{TableNames.log}"" l ON l.id = lt.log_id
          Left Join ""{TableNames.tag_type}"" tt ON tt.id = t.type_id WHERE t.id = @Id";
 
@@ -112,13 +112,13 @@ public class TagRepository : BaseRepository, ITagRepository
     //         return (await con.ExecuteAsync(query, new { Id }) > 0);
     // }
 
-    public async Task<bool> DeleteTag(long Id)
-    {
-        var query = $@"DELETE FROM {TableNames.tag} WHERE id = @Id";
+    // public async Task<bool> DeleteTag(long Id)
+    // {
+    //     var query = $@"DELETE FROM {TableNames.tag} WHERE id = @Id";
 
-        using (var con = NewConnection)
-            return (await con.ExecuteAsync(query, new { Id }) > 0);
-    }
+    //     using (var con = NewConnection)
+    //         return (await con.ExecuteAsync(query, new { Id }) > 0);
+    // }
 
     public async Task<Tag> GetById(long Id)
     {

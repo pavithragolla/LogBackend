@@ -28,7 +28,7 @@ public class TagController : ControllerBase
     [HttpPost]
     [Authorize]
 
-    public async Task<ActionResult<TagCreateDTO>> Create([FromBody] TagCreateDTO Data)
+    public async Task<ActionResult<Tag>> Create([FromBody] TagCreateDTO Data)
     {
         var IsSuperuser = User.Claims.FirstOrDefault(c => c.Type == UserConstants.IsSuperuser)?.Value;
         if (IsSuperuser.Trim().ToLower() != "true")
@@ -38,7 +38,7 @@ public class TagController : ControllerBase
             Name = Data.Name.Trim(),
             TypeId = Data.TypeId
         };
-        var createdItem = await _tag.Create(toCreateUser);
+        var createdItem = (await _tag.Create(toCreateUser)).asDto;
         return Ok(createdItem);
     }
     [HttpGet("{id}")]
@@ -84,21 +84,21 @@ public class TagController : ControllerBase
     //     }
     // }
 
-    [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteTag([FromRoute] long id)
-    {
+    // [HttpDelete("{id}")]
+    // public async Task<ActionResult> DeleteTag([FromRoute] long id)
+    // {
 
-        var existingItem = await _tag.GetById(id);
-        if (existingItem.Id != existingItem.Id)
-            return Unauthorized("You are not authorized to delete this comment");
-        if (existingItem is null)
-            return NotFound("Comment not found");
-        var didDelete = await _tag.DeleteTag(id);
-        if (!didDelete)
-            return StatusCode(500, "Something went wrong");
-        else
-        {
-            return Ok("Deleted");
-        }
-    }
+    //     var existingItem = await _tag.GetById(id);
+    //     if (existingItem.Id != existingItem.Id)
+    //         return Unauthorized("You are not authorized to delete this comment");
+    //     if (existingItem is null)
+    //         return NotFound("Comment not found");
+    //     var didDelete = await _tag.DeleteTag(id);
+    //     if (!didDelete)
+    //         return StatusCode(500, "Something went wrong");
+    //     else
+    //     {
+    //         return Ok("Deleted");
+    //     }
+    // }
 }

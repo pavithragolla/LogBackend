@@ -37,7 +37,7 @@ public class UserRepository : BaseRepository, IUserRepository
         }
 
     }
-       public async Task<User> GetUserById(int Id)
+    public async Task<User> GetUserById(int Id)
     {
         var query = $@"SELECT * FROM ""{TableNames.user}"" WHERE id = @Id";
         using (var connection = NewConnection)
@@ -46,7 +46,7 @@ public class UserRepository : BaseRepository, IUserRepository
             return Res;
         }
     }
-       public async Task<List<Tag>> GetTagUserById(int Id)
+    public async Task<List<Tag>> GetTagUserById(int Id)
     {
         var query = $@"SELECT * FROM ""{TableNames.tag}""t LEFT JOIN ""{TableNames.user_tag}"" ut ON ut.tag_id = t.id WHERE ut.user_id = @Id";
         using (var connection = NewConnection)
@@ -85,7 +85,7 @@ public class UserRepository : BaseRepository, IUserRepository
     public async Task<bool> Update(User Item)
     {
         var query = $@"UPDATE ""{TableNames.user}"" SET status = @Status WHERE id = @Id";
-
+          // , last_login = now()
         using (var con = NewConnection)
 
             return await con.ExecuteAsync(query, Item) > 0;

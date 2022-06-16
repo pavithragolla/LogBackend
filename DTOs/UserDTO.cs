@@ -60,6 +60,8 @@ public record UserLoginDTO
 
     [JsonPropertyName("device_id")]
     public string DeviceId { get; set; }
+    [JsonPropertyName("notification_token")]
+    public string NotificationToken { get; set; }
 
 }
 
@@ -77,10 +79,13 @@ public record UserLoginResDTO
 
     [JsonPropertyName("token")]
     public string Token { get; set; }
-      [JsonPropertyName("is_superuser")]
+    [JsonPropertyName("is_superuser")]
     public bool IsSuperuser { get; set; }
     [JsonPropertyName("device_id")]
     public string DeviceId { get; set; }
+    [JsonPropertyName("notification_token")]
+    public string NotificationToken { get; set; }
+
 }
 
 public record UserUpdateDTO

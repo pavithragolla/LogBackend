@@ -58,6 +58,8 @@ public record LogUpdateDTO
 {
     [JsonPropertyName("description")]
     public string Description { get; set; }
+    [JsonPropertyName("tags")]
+    public List<int> Tags { get; set; }
 
 
 
