@@ -20,6 +20,7 @@ public interface ITagRepository
     Task<List<TagTypeDTO>> GetTagTypeByLogId(int id);
 
 
+
 }
 
 public class TagRepository : BaseRepository, ITagRepository
@@ -139,4 +140,6 @@ public class TagRepository : BaseRepository, ITagRepository
             return await con.ExecuteAsync(query, Item) > 0;
         }
     }
+
+   
 }

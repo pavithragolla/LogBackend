@@ -32,6 +32,8 @@ public record Log
         StackTrace = StackTrace,
         UpdatedByUserId = UpdatedByUserId,
         TypeName = TypeName,
+        CreatedAt = CreatedAt,
+        UpdatedAt = UpdatedAt,
         // Name  = Name
         ////
         ReadStatus = ReadStatus

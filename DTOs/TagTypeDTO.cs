@@ -8,7 +8,7 @@ public record TagTypeDTO
     [JsonPropertyName("id")]
 
     public int Id { get; set; }
-    [JsonPropertyName("type_name")]
+    [JsonPropertyName("name")]
 
     public string Name { get; set; }
 }
