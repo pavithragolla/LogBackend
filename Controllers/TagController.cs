@@ -62,6 +62,26 @@ public class TagController : ControllerBase
         return Ok(dto);
     }
 
+    [HttpPut("{id}")]
+    [Authorize]
+    public async Task<ActionResult<TagDTO>> Update([FromBody] TagUpdateDTO Data, int id)
+    {
+        var IsSuperuser = User.Claims.FirstOrDefault(c => c.Type == UserConstants.IsSuperuser)?.Value;
+        if (IsSuperuser.Trim().ToLower() != "true")
+            return BadRequest("This is only for SuperUser");
+        var toUpdateTag = new Tag()
+        {
+            Id = id,
+            Name = Data.Name.Trim(),
+        };
+        var updatedItem = await _tag.UpdateTag(toUpdateTag);
+        if (!updatedItem)
+            return BadRequest("update failed");
+
+        return Ok(updatedItem);
+    }
+
+
     // [HttpDelete("{id}")]
     // // [Authorize]
 
@@ -80,6 +100,7 @@ public class TagController : ControllerBase
     //         return BadRequest("Failed to delete comment");
     //     else
     //     {
+    // return Ok(updatedItem.asDto);
     //         return Ok(didDelete);
     //     }
     // }

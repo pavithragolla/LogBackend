@@ -32,8 +32,13 @@ public record TagDTO
 
 public record TagCreateDTO
 {
-     [JsonPropertyName("name")]
+    [JsonPropertyName("name")]
     public string Name { get; set; }
     [JsonPropertyName("type_id")]
     public int TypeId { get; set; }
+}
+public record TagUpdateDTO
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
 }

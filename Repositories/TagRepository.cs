@@ -14,6 +14,7 @@ public interface ITagRepository
     Task<List<Log>> GetTagsByLogId(long Id);
     Task<List<Tag>> GetAllTags(TagFilterDTO tagfilter);
     Task<Tag> GetById(long Id);
+    Task<bool> UpdateTag(Tag Item);
     // Task<bool> DeleteTag(long Id);
     // Task<List<Log>> GetTagByLog(long Id);
     Task<List<TagTypeDTO>> GetTagTypeByLogId(int id);
@@ -127,6 +128,15 @@ public class TagRepository : BaseRepository, ITagRepository
         {
             var Res = await connection.QuerySingleOrDefaultAsync<Tag>(query, new { Id });
             return Res;
+        }
+    }
+
+    public async Task<bool> UpdateTag(Tag Item)
+    {
+        var query = $@"UPDATE ""{TableNames.tag}"" SET name = @Name WHERE id = @Id";
+        using (var con = NewConnection)
+        {
+            return await con.ExecuteAsync(query, Item) > 0;
         }
     }
 }

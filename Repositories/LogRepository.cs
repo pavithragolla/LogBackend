@@ -15,6 +15,7 @@ public interface ILogRepository
     Task<bool> DeleteLog(long Id);
     // Task<List<Log>> GetAllLog(int Limit, int PageNumber);
     Task<List<Log>> GetAllLog(DateFilterDTO dateFilter);
+    Task<List<Log>> GetAllUserLog(DateFilterDTO dateFilter);
     Task<Log> GetById(long id);
     Task<List<Tag>> GetTags(long id);
     // Task seenId(int Id, long id);
@@ -186,6 +187,16 @@ public class LogRepository : BaseRepository, ILogRepository
         {
             return await con.QuerySingleOrDefaultAsync(query, new { UserId = UserId, LogId = Id });
 
+        }
+    }
+
+    public async  Task<List<Log>> GetAllUserLog(DateFilterDTO dateFilter)
+    {
+        var query = $@"SELECT * FROM ""{TableNames.user}"" WHERE partially_deleted = false";
+
+        using (var con = NewConnection)
+        {
+            return (await con.QueryAsync<Log>(query)).AsList();
         }
     }
 }

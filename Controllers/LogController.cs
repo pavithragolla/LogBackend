@@ -50,9 +50,21 @@ public class LogController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<Log>>> GetAllLog([FromQuery] DateFilterDTO dateFilter = null)
     {
-        var AllLogs = (await _log.GetAllLog(dateFilter)).Select(x => x.asDto).ToList();
+        var IsSuperuser = User.Claims.FirstOrDefault(c => c.Type == UserConstants.IsSuperuser)?.Value;
+        if (IsSuperuser.Trim().ToLower() == "true")
+        {
+            var AllLogs = (await _log.GetAllLog(dateFilter)).Select(x => x.asDto).ToList();
+            return Ok(AllLogs);
 
-        return Ok(AllLogs);
+        }
+        if (IsSuperuser.Trim().ToLower() == "true")
+        {
+            var AllLogs = (await _log.GetAllUserLog(dateFilter)).Select(x => x.asDto).ToList();
+            return Ok(AllLogs);
+        }
+        return BadRequest("log not found");
+
+
     }
 
     [HttpGet("{id}")]
