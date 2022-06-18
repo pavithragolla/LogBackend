@@ -1,4 +1,5 @@
 using Dapper;
+using LogBackend.DTOs;
 using LogBackend.Models;
 using LogBackend.Utilities;
 
@@ -10,7 +11,7 @@ public interface IUserRepository
     Task<User> Create(User Item);
     Task<bool> Update(User Item);
 
-    Task<List<User>> GetAllUser();
+    Task<List<User>> GetAllUser(TagFilterDTO tagfilter);
 
     Task<User> GetUserById(int Id);
     Task<List<Tag>> GetTagUserById(int Id);
@@ -66,26 +67,37 @@ public class UserRepository : BaseRepository, IUserRepository
         }
     }
 
-    public async Task<List<User>> GetAllUser()
+    public async Task<List<User>> GetAllUser(TagFilterDTO tagfilter)
     {
+        List<User> res;
+
         var query = $@"SELECT * FROM ""{TableNames.user}""";
 
+        if (tagfilter.Name is not null)
+        {
+            query += " WHERE name = @Name";
+        }
+        var paramsObj = new
+        {
+            Name = tagfilter?.Name,
+        };
         using (var con = NewConnection)
         {
-            return (await con.QueryAsync<User>(query)).AsList();
-
-            // var query = $@"SELECT * FROM ""{TableNames.user}""";
-            // List<User> res;
-            // using (var con = NewConnection)
-            // res = (await con.QueryAsync<User>(query)).AsList();
-            // return res;
+            res = (await con.QueryAsync<User>(query, paramsObj)).AsList();
         }
+        return res;
+        // var query = $@"SELECT * FROM ""{TableNames.user}""";
+
+        // using (var con = NewConnection)
+        // {
+        //     return (await con.QueryAsync<User>(query)).AsList();
+        // }
     }
 
     public async Task<bool> Update(User Item)
     {
         var query = $@"UPDATE ""{TableNames.user}"" SET status = @Status WHERE id = @Id";
-          // , last_login = now()
+        // , last_login = now()
         using (var con = NewConnection)
 
             return await con.ExecuteAsync(query, Item) > 0;

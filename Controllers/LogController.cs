@@ -50,19 +50,38 @@ public class LogController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<Log>>> GetAllLog([FromQuery] DateFilterDTO dateFilter = null)
     {
+        // var IsSuperuser = User.Claims.FirstOrDefault(c => c.Type == UserConstants.IsSuperuser)?.Value;
+        // if (IsSuperuser.Trim().ToLower() == "true")
+        // {
+        //     var AllLogs = (await _log.GetAllLog(dateFilter)).Select(x => x.asDto).ToList();
+        //     return Ok(AllLogs);
+
+        // }
+        // if (IsSuperuser.Trim().ToLower() == "true")
+        // {
+        //     var AllLogs = (await _log.GetAllUserLog(dateFilter)).Select(x => x.asDto).ToList();
+        //     return Ok(AllLogs);
+        // }
+        // return BadRequest("log not found");
+
+
+        List<Log> allLog = new List<Log>();
         var IsSuperuser = User.Claims.FirstOrDefault(c => c.Type == UserConstants.IsSuperuser)?.Value;
+        var userId = User.Claims.FirstOrDefault(c => c.Type == UserConstants.Id)?.Value;
         if (IsSuperuser.Trim().ToLower() == "true")
         {
             var AllLogs = (await _log.GetAllLog(dateFilter)).Select(x => x.asDto).ToList();
             return Ok(AllLogs);
 
         }
-        if (IsSuperuser.Trim().ToLower() == "true")
+        else
         {
             var AllLogs = (await _log.GetAllUserLog(dateFilter)).Select(x => x.asDto).ToList();
             return Ok(AllLogs);
         }
-        return BadRequest("log not found");
+
+
+
 
 
     }
@@ -74,12 +93,12 @@ public class LogController : ControllerBase
         var Id = int.Parse(userId);
 
         var res = await _log.GetById(id);
-        // await _log.seenId(Id, res.Id);
+        await _log.seenId(Id, res.Id);
 
         if (res is null)
 
             return NotFound("No Log Found with given id");
-        //  await _log.seenId(Id, res.Id);
+        await _log.seenId(Id, res.Id);
         var dto = res.asDto;
         dto.Tags = (await _log.GetTags(id)).Select(x => x.asDto).ToList();
         // dto.TagTypes = (await _log.GetLogTagTypesById(id)).Select(x => x.asDto).ToList();  // error at asDto
@@ -115,9 +134,7 @@ public class LogController : ControllerBase
         var toUpdateLog = res with
         {
             Description = Data.Description.Trim(),
-            // ReadStatus = Data.ReadStatus,
             UpdatedByUserId = Id,
-
         };
 
         var didUpdate = await _log.Update(toUpdateLog, Data.Tags);
@@ -125,6 +142,28 @@ public class LogController : ControllerBase
             return Ok("Log Updated");
         return Ok(didUpdate);
     }
+    // [HttpPut("{id}/seen")]
+    // public async Task<ActionResult> Seen([FromRoute] int id)
+    // {
+    //     var Id = GetuserIdFromClaims(User.Claims);
+    //     var is_seen = await _log.GetById(id);
+    //     var Update = res with
+    //     {
+    //         is_seen = true,
+    //         UpdatedByUserId = Id,
+    //     }
+    //     if (is_seen is null)
+    //     {
+
+    //          await _log.unseen(Id, id);s
+    //     }
+    //     else
+    //     {
+
+    //     await _log.SetReadStatus(id, Id);
+    //     }
+    //     return Ok("Log seen Updated");
+    // }
 
     // [HttpPut("{id}/status")]
 
@@ -158,11 +197,30 @@ public class LogController : ControllerBase
         if (existingItem is null)
             return NotFound("Comment not found");
         var didDelete = await _log.DeleteLog(id);
+        // var didDelete = await _log.SoftDelete(id);
         if (!didDelete)
             return StatusCode(500, "Something went wrong");
         else
         {
             return Ok("Deleted");
+        }
+    }
+    [HttpPut("softdelete/{id}")]
+    public async Task<ActionResult> softDelete([FromRoute] long id)
+    {
+
+        var existingItem = await _log.GetById(id);
+        if (existingItem.Id != existingItem.Id)
+            return Unauthorized("You are not authorized to delete this comment");
+        if (existingItem is null)
+            return NotFound("Comment not found");
+        var didDelete = await _log.SoftDelete(id);
+        // var didDelete = await _log.SoftDelete(id);
+        if (!didDelete)
+            return StatusCode(500, "Something went wrong");
+        else
+        {
+            return Ok("soft Deleted");
         }
     }
 }

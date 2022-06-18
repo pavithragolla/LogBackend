@@ -171,12 +171,12 @@ public class UserController : ControllerBase
     [HttpGet]
     [Authorize]
 
-    public async Task<ActionResult<List<UserDTO>>> GetAllUser()
+    public async Task<ActionResult<List<UserDTO>>> GetAllUser([FromQuery] TagFilterDTO tagfilter = null)
     {
         var IsSuperuser = User.Claims.FirstOrDefault(c => c.Type == UserConstants.IsSuperuser)?.Value;
         if (IsSuperuser.Trim().ToLower() != "true")
             return BadRequest("This is only for SuperUser");
-        var AllUsers = await _user.GetAllUser();
+        var AllUsers = await _user.GetAllUser(tagfilter);
         return Ok(AllUsers.Select(x => x.asDto));
 
     }

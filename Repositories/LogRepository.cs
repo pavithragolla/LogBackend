@@ -18,11 +18,12 @@ public interface ILogRepository
     Task<List<Log>> GetAllUserLog(DateFilterDTO dateFilter);
     Task<Log> GetById(long id);
     Task<List<Tag>> GetTags(long id);
-    // Task seenId(int Id, long id);
+    Task seenId(int Id, long id);
     Task<List<TagTypeDTO>> GetLogTagTypesById(long id);
-    // Task<bool> SoftDelete(long Id);
+    Task<bool> SoftDelete(long Id);
 
-    Task<bool> SetReadStatus(long Id, int UserId, int LogId);
+    Task<Log> SetReadStatus(long Id, int UserId, int LogId);
+    Task<bool> unseen(int Id, long id);
 
 }
 
@@ -60,9 +61,7 @@ public class LogRepository : BaseRepository, ILogRepository
     public async Task<List<Log>> GetAllLog(DateFilterDTO dateFilter)
     {
         List<Log> res;
-
-
-
+        
         var query = $@"SELECT * FROM ""{TableNames.log}"" ";
 
 
@@ -131,13 +130,12 @@ public class LogRepository : BaseRepository, ILogRepository
         using (var con = NewConnection)
             return (await con.ExecuteAsync(query, new { Id }) > 0);
     }
-    // public async Task<bool> SoftDelete(long Id)
-    // {
-    //     var query = $@"DELETE FROM ""{TableNames.log}"" created_at (now() - 90 Days) WHERE id = @Id";
-
-    //     using (var con = NewConnection)
-    //         return (await con.ExecuteAsync(query, new { Id }) > 0);
-    // }
+    public async Task<bool> SoftDelete(long Id)
+    {
+        var query = $@"UPDATE  ""{TableNames.log}"" SET partially_deleted = true WHERE id = @Id";
+        using (var con = NewConnection)
+            return (await con.ExecuteAsync(query, new { Id }) > 0);
+    }
 
     public async Task<List<Tag>> GetTags(long Id)
     {
@@ -155,17 +153,17 @@ public class LogRepository : BaseRepository, ILogRepository
     }
 
 
-    // public async Task seenId(int Id, long id)
-    // {
-    //     var query = $@"INSERT INTO ""{TableNames.log_seen}"" ( user_id, log_id) VALUES (@UserId, @Logid) RETURNING *";
+    public async Task seenId(int Id, long id)
+    {
+        var query = $@"INSERT INTO ""{TableNames.log_seen}"" ( user_id, log_id) VALUES (@UserId, @Logid) RETURNING *";
 
-    //     using (var con = NewConnection)
-    //     {
-    //         var res = await con.QuerySingleOrDefaultAsync(query, new { UserId = Id, LogId = id });
+        using (var con = NewConnection)
+        {
+            var res = await con.QuerySingleOrDefaultAsync(query, new { UserId = Id, LogId = id });
 
-    //     }
-    //     // return res;
-    // }
+        }
+        // return res;
+    }
 
     public async Task<List<TagTypeDTO>> GetLogTagTypesById(long id)
     {
@@ -179,7 +177,7 @@ public class LogRepository : BaseRepository, ILogRepository
         }
     }
 
-    public async Task<bool> SetReadStatus(long Id, int UserId, int LogId)
+    public async Task<Log> SetReadStatus(long Id, int UserId, int LogId)
     {
         var query = $@"INSERT INTO ""{TableNames.log_seen}"" ( user_id, log_id) VALUES (@UserId, @Logid) RETURNING *";
 
@@ -189,10 +187,23 @@ public class LogRepository : BaseRepository, ILogRepository
 
         }
     }
-
-    public async  Task<List<Log>> GetAllUserLog(DateFilterDTO dateFilter)
+    public async Task<bool> unseen(int Id, long id)
     {
-        var query = $@"SELECT * FROM ""{TableNames.user}"" WHERE partially_deleted = false";
+        var query = $@"DELETE FROM ""{TableNames.log_seen}"" WHERE user_id = @Id AND log_id = @Logid";
+
+        using (var con = NewConnection)
+            return (await con.ExecuteAsync(query, new { Id = Id, LogId = id }) > 0);
+    }
+
+    public async Task<List<Log>> GetAllUserLog(DateFilterDTO dateFilter)
+    {
+        var query = $@"SELECT * FROM ""{TableNames.log}"" WHERE partially_deleted = false";
+        // var query = $@"SELECT * FROM ""{TableNames.user}"" WHERE id = @id";
+        // {ut} ut  lf logtag lt on lt.tag_id= ut.tag_idlf logtable l on l.id =lt.log_id where ut.user_id = @userId;
+        // var query = $@"SELECT *FROM {TableNames.user_tag} ut LEFT JOIN {TableNames.log_tag} lt ON lt.tag_id = ut.tag_id LEFT JOIN {TableNames.log} l ON l.id =lt.log_id WHERE ut.user_id = @userId";
+        // long userId,
+        // long userId,
+        // srearch, markseen,upd user,get single, update tag,delete log
 
         using (var con = NewConnection)
         {
