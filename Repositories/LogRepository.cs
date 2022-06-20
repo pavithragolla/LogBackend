@@ -5,6 +5,7 @@ using Dapper;
 using LogBackend.Models;
 using Microsoft.Extensions.Caching.Memory;
 using LogBackend.DTOs;
+using logbackend.Services;
 
 namespace Logbackend.Repositories;
 
@@ -14,16 +15,18 @@ public interface ILogRepository
     Task<bool> Update(Log Item, List<int> tags);
     Task<bool> DeleteLog(long Id);
     // Task<List<Log>> GetAllLog(int Limit, int PageNumber);
-    Task<List<Log>> GetAllLog(DateFilterDTO dateFilter);
-    Task<List<Log>> GetAllUserLog(DateFilterDTO dateFilter);
+    Task<List<Log>> GetAllLog(DateFilterDTO dateFilter, LogFilterDTO logfilter = null);
+    Task<List<Log>> GetAllUserLog(DateFilterDTO dateFilter, LogFilterDTO logfilter = null);
     Task<Log> GetById(long id);
     Task<List<Tag>> GetTags(long id);
     Task seenId(int Id, long id);
     Task<List<TagTypeDTO>> GetLogTagTypesById(long id);
     Task<bool> SoftDelete(long Id);
 
-    Task<Log> SetReadStatus(long Id, int UserId, int LogId);
-    Task<bool> unseen(int Id, long id);
+    Task sendPushNotification();
+
+    // Task<Log> SetReadStatus(long Id, int UserId, int LogId);
+    // Task<bool> unseen(int Id, long id);
 
 }
 
@@ -31,8 +34,13 @@ public interface ILogRepository
 public class LogRepository : BaseRepository, ILogRepository
 {
 
-    public LogRepository(IConfiguration configuration) : base(configuration)
+    private readonly IPushNotificationService _pushNotification;
+    private readonly ILogger<LogRepository> _logger;
+
+    public LogRepository(IConfiguration configuration, IPushNotificationService pushNotification, ILogger<LogRepository> logger) : base(configuration)
     {
+        _pushNotification = pushNotification;
+        _logger = logger;
     }
 
     public async Task<Log> Create(Log Item)
@@ -58,12 +66,27 @@ public class LogRepository : BaseRepository, ILogRepository
 
     // }
 
-    public async Task<List<Log>> GetAllLog(DateFilterDTO dateFilter)
+    public async Task<List<Log>> GetAllLog(DateFilterDTO dateFilter, LogFilterDTO logfilter = null)
     {
         List<Log> res;
-        
+        // List<Tag> res;
+
         var query = $@"SELECT * FROM ""{TableNames.log}"" ";
 
+
+        if (logfilter.Title is not null)
+        {
+            query += " WHERE title = @Title";
+        }
+        // // var paramsObj = new
+        // {
+        //     Name = tagfilter?.Name,
+        // };
+        // using (var con = NewConnection)
+        // {
+        //     res = (await con.QueryAsync<Tag>(query, paramsObj)).AsList();
+        // }
+        // return res;
 
 
         if (dateFilter is not null && (dateFilter.FromDate.HasValue || dateFilter.ToDate.HasValue))
@@ -71,13 +94,22 @@ public class LogRepository : BaseRepository, ILogRepository
             if (dateFilter.FromDate is null) dateFilter.FromDate = DateTime.MinValue;
             if (dateFilter.ToDate is null) dateFilter.ToDate = DateTime.Now;
             query += "WHERE created_at BETWEEN  @FromDate AND  @ToDate";
+
+
         }
+
+        // if (tagfilter.Name is not null)
+        // {
+        //     query += " WHERE name = @Name";
+        // }
 
         var paramsObj = new
         {
 
             FromDate = dateFilter?.FromDate,
             ToDate = dateFilter?.ToDate,
+            Title = logfilter?.Title,
+
 
         };
         using (var con = NewConnection)
@@ -177,25 +209,25 @@ public class LogRepository : BaseRepository, ILogRepository
         }
     }
 
-    public async Task<Log> SetReadStatus(long Id, int UserId, int LogId)
-    {
-        var query = $@"INSERT INTO ""{TableNames.log_seen}"" ( user_id, log_id) VALUES (@UserId, @Logid) RETURNING *";
+    // public async Task<Log> SetReadStatus(long Id, int UserId, int LogId)
+    // {
+    //     var query = $@"INSERT INTO ""{TableNames.log_seen}"" ( user_id, log_id) VALUES (@UserId, @Logid) RETURNING *";
 
-        using (var con = NewConnection)
-        {
-            return await con.QuerySingleOrDefaultAsync(query, new { UserId = UserId, LogId = Id });
+    //     using (var con = NewConnection)
+    //     {
+    //         return await con.QuerySingleOrDefaultAsync(query, new { UserId = UserId, LogId = Id });
 
-        }
-    }
-    public async Task<bool> unseen(int Id, long id)
-    {
-        var query = $@"DELETE FROM ""{TableNames.log_seen}"" WHERE user_id = @Id AND log_id = @Logid";
+    //     }
+    // }
+    // public async Task<bool> unseen(int Id, long id)
+    // {
+    //     var query = $@"DELETE FROM ""{TableNames.log_seen}"" WHERE user_id = @Id AND log_id = @Logid";
 
-        using (var con = NewConnection)
-            return (await con.ExecuteAsync(query, new { Id = Id, LogId = id }) > 0);
-    }
+    //     using (var con = NewConnection)
+    //         return (await con.ExecuteAsync(query, new { Id = Id, LogId = id }) > 0);
+    // }
 
-    public async Task<List<Log>> GetAllUserLog(DateFilterDTO dateFilter)
+    public async Task<List<Log>> GetAllUserLog(DateFilterDTO dateFilter, LogFilterDTO logfilter = null)
     {
         var query = $@"SELECT * FROM ""{TableNames.log}"" WHERE partially_deleted = false";
         // var query = $@"SELECT * FROM ""{TableNames.user}"" WHERE id = @id";
@@ -209,5 +241,26 @@ public class LogRepository : BaseRepository, ILogRepository
         {
             return (await con.QueryAsync<Log>(query)).AsList();
         }
+    }
+
+    public async Task sendPushNotification()
+    {
+        var query = $@"SELECT * FROM {TableNames.user_login} WHERE notification_token != null";
+        List<UserLogin> loggedUser = new List<UserLogin>();
+        using (var con = NewConnection)
+            loggedUser = (await con.QueryAsync<UserLogin>(query)).AsList();
+
+        Console.WriteLine(loggedUser);
+        var notificationData = new PushNotificationData
+        {
+            BodyText = "Resolve entry",
+            TitleText = "You have got new log entry"
+        };
+
+        var pn = _pushNotification.SendAll(loggedUser.Select(x => notificationData with
+        {
+            NotificationToken = x.NotificationToken,
+        }).AsList());
+
     }
 }

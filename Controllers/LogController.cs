@@ -44,11 +44,15 @@ public class LogController : ControllerBase
             StackTrace = Data.StackTrace,
         };
         var createdItem = (await _log.Create(CreateLog)).asDto;
+        if (createdItem is null)
+        {
+            await _log.sendPushNotification();
+        }
         return Ok(createdItem);
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Log>>> GetAllLog([FromQuery] DateFilterDTO dateFilter = null)
+    public async Task<ActionResult<List<Log>>> GetAllLog([FromQuery] DateFilterDTO dateFilter = null, [FromQuery] LogFilterDTO logfilter = null)
     {
         // var IsSuperuser = User.Claims.FirstOrDefault(c => c.Type == UserConstants.IsSuperuser)?.Value;
         // if (IsSuperuser.Trim().ToLower() == "true")
@@ -70,13 +74,13 @@ public class LogController : ControllerBase
         var userId = User.Claims.FirstOrDefault(c => c.Type == UserConstants.Id)?.Value;
         if (IsSuperuser.Trim().ToLower() == "true")
         {
-            var AllLogs = (await _log.GetAllLog(dateFilter)).Select(x => x.asDto).ToList();
+            var AllLogs = (await _log.GetAllLog(dateFilter, logfilter)).Select(x => x.asDto).ToList();
             return Ok(AllLogs);
 
         }
         else
         {
-            var AllLogs = (await _log.GetAllUserLog(dateFilter)).Select(x => x.asDto).ToList();
+            var AllLogs = (await _log.GetAllUserLog(dateFilter, logfilter)).Select(x => x.asDto).ToList();
             return Ok(AllLogs);
         }
 

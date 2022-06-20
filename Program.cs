@@ -6,6 +6,10 @@ using LogBackend.Repositories;
 using Logbackend.Repositories;
 using LogBackend.DTOs;
 
+using Hangfire;
+using Hangfire.PostgreSql;
+using logbackend.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -14,6 +18,7 @@ builder.Services.AddTransient<IUserLoginRepository, UserLoginRepository>();
 builder.Services.AddTransient<ILogRepository, LogRepository>();
 builder.Services.AddTransient<ITagRepository, TagRepository>();
 builder.Services.AddTransient<ITagTypeRepository, TagTypeRepository>();
+builder.Services.AddTransient<IPushNotificationService, PushNotificationService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -29,6 +34,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
+
+builder.Services.AddHangfire(config =>
+    config.UsePostgreSqlStorage(builder.Configuration.GetConnectionString("HangfireConnection"),
+    new PostgreSqlStorageOptions
+    {
+        DistributedLockTimeout = TimeSpan.FromMinutes(1),
+    }));
+// Add The processing server as IHostedService
+builder.Services.AddHangfireServer(options =>
+{
+options.WorkerCount = Environment.ProcessorCount * 2;
+
+});
+
+
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
