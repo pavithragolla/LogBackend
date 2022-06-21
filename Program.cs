@@ -9,6 +9,7 @@ using LogBackend.DTOs;
 using Hangfire;
 using Hangfire.PostgreSql;
 using logbackend.Services;
+using LogBackend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,7 @@ builder.Services.AddTransient<ILogRepository, LogRepository>();
 builder.Services.AddTransient<ITagRepository, TagRepository>();
 builder.Services.AddTransient<ITagTypeRepository, TagTypeRepository>();
 builder.Services.AddTransient<IPushNotificationService, PushNotificationService>();
+builder.Services.AddTransient<IEmailService, EmailService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

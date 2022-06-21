@@ -3,6 +3,7 @@ using Logbackend.Models;
 using Logbackend.Repositories;
 using LogBackend.DTOs;
 using LogBackend.Repositories;
+using LogBackend.Services;
 using LogBackend.Utilities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,15 +18,17 @@ public class LogController : ControllerBase
     private readonly ILogRepository _log;
     private readonly ITagRepository _tag;
     private IConfiguration _config;
+    private IEmailService _email;
 
 
 
-    public LogController(ILogger<LogController> logger, ILogRepository log, IConfiguration config, ITagRepository tag)
+    public LogController(ILogger<LogController> logger, ILogRepository log, IConfiguration config, ITagRepository tag, IEmailService email)
     {
         _logger = logger;
         _log = log;
         _config = config;
         _tag = tag;
+        _email = email;
     }
     private int GetuserIdFromClaims(IEnumerable<Claim> claims)
     {
@@ -47,6 +50,7 @@ public class LogController : ControllerBase
         if (createdItem is null)
         {
             await _log.sendPushNotification();
+            // _email.Send("Email Address");
         }
         return Ok(createdItem);
     }
